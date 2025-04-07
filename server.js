@@ -1,40 +1,51 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
+// server.js
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Enable CORS for all origins (for now, more restrictive options are possible later)
-app.use(cors({ origin: '*' }));
-
-// Your Groq API key
-const GROQ_API_KEY = "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";
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
+app.use(cors());
 app.use(express.json());
 
-app.post("/chat", (req, res) => {
-    try {
-      const messages = req.body.messages || [];
-      console.log("Received messages:", messages);
-  
-      // Test response directly without calling Groq
-      if (messages.length > 0) {
-        res.json({ content: "Hello! How can I help?" });
-      } else {
-        res.status(400).json({ error: "No messages provided." });
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_API_KEY = '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';
+
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+
+  try {
+    const response = await axios.post(
+      GROQ_API_URL,
+      {
+        model: 'llama2-70b-4096',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a math expert assistant. You solve math equations step by step.',
+          },
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
       }
-    } catch (err) {
-      console.error("Error:", err);
-      res.status(500).json({ error: "Internal server error" });
-    }
-});
-    
-app.get("/", (_, res) => {
-  res.send("Groq Chat API is live.");
+    );
+
+    const reply = response.data.choices[0].message.content;
+    res.json({ reply });
+  } catch (error) {
+    console.error('Error from Groq:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Something went wrong with Groq API.' });
+  }
 });
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
