@@ -1,14 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { config } from "dotenv";
-import { OpenAI } from "openai";
-
-config(); // Load .env in local dev
+import fetch from "node-fetch";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Your Groq API key (safe in env on Render)
+const GROQ_API_KEY = "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";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 app.use(cors());
 app.use(express.json());
@@ -17,20 +16,33 @@ app.post("/chat", async (req, res) => {
   try {
     const messages = req.body.messages || [];
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages,
+    const response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "mixtral-8x7b-32768", // Other models: llama3-8b-8192, gemma-7b-it
+        messages
+      })
     });
 
-    res.json(response.choices[0].message);
+    const data = await response.json();
+
+    if (data.choices?.[0]?.message) {
+      res.json(data.choices[0].message);
+    } else {
+      res.status(500).json({ error: "No response from Groq." });
+    }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Something went wrong." });
+    res.status(500).json({ error: "Groq API error" });
   }
 });
 
 app.get("/", (_, res) => {
-  res.send("ChatGPT Proxy is running.");
+  res.send("Groq Chat API is live.");
 });
 
 app.listen(port, () => {
