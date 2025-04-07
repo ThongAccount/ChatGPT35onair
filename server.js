@@ -5,11 +5,13 @@ import fetch from "node-fetch";
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Your Groq API key (safe in env on Render)
+// Enable CORS for all origins (for now, more restrictive options are possible later)
+app.use(cors({ origin: '*' }));
+
+// Your Groq API key
 const GROQ_API_KEY = "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";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-app.use(cors());
 app.use(express.json());
 
 app.post("/chat", async (req, res) => {
@@ -23,7 +25,7 @@ app.post("/chat", async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "mixtral-8x7b-32768", // Other models: llama3-8b-8192, gemma-7b-it
+        model: "mixtral-8x7b-32768", // Or other Groq models
         messages
       })
     });
