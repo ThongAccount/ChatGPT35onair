@@ -14,37 +14,23 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 app.use(express.json());
 
-app.post("/chat", async (req, res) => {
+app.post("/chat", (req, res) => {
     try {
-        const messages = req.body.messages || [];
-        console.log("Messages received:", messages); // Log incoming messages
-    
-        const response = await fetch(GROQ_API_URL, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${GROQ_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "mixtral-8x7b-32768", // Or other Groq models
-                messages
-            })
-        });
+      const messages = req.body.messages || [];
+      console.log("Received messages:", messages);
   
-        const data = await response.json();
-        console.log("Groq response:", data); // Log Groq API response
-    
-        if (data.choices?.[0]?.message) {
-            res.json(data.choices[0].message);
-        } else {
-            res.status(500).json({ error: "No response from Groq." });
-        }
-        } catch (err) {
-            console.error("Error during API call:", err); // Log the error
-            res.status(500).json({ error: "Groq API error", details: err.message });
-        }
+      // Test response directly without calling Groq
+      if (messages.length > 0) {
+        res.json({ content: "Hello! How can I help?" });
+      } else {
+        res.status(400).json({ error: "No messages provided." });
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
 });
-  
+    
 app.get("/", (_, res) => {
   res.send("Groq Chat API is live.");
 });
