@@ -16,33 +16,33 @@ app.use(express.json());
 
 app.post("/chat", async (req, res) => {
     try {
-      const messages = req.body.messages || [];
-      console.log("Messages received:", messages); // Log incoming messages
+        const messages = req.body.messages || [];
+        console.log("Messages received:", messages); // Log incoming messages
+    
+        const response = await fetch(GROQ_API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${GROQ_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "mixtral-8x7b-32768", // Or other Groq models
+                messages
+            })
+        });
   
-      const response = await fetch(GROQ_API_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "mixtral-8x7b-32768", // Or other Groq models
-          messages
-        })
-      });
-  
-      const data = await response.json();
-      console.log("Groq response:", data); // Log Groq API response
-  
-      if (data.choices?.[0]?.message) {
-        res.json(data.choices[0].message);
-      } else {
-        res.status(500).json({ error: "No response from Groq." });
-      }
-    } catch (err) {
-      console.error("Error during API call:", err); // Log the error
-      res.status(500).json({ error: "Groq API error", details: err.message });
-    }
+        const data = await response.json();
+        console.log("Groq response:", data); // Log Groq API response
+    
+        if (data.choices?.[0]?.message) {
+            res.json(data.choices[0].message);
+        } else {
+            res.status(500).json({ error: "No response from Groq." });
+        }
+        } catch (err) {
+            console.error("Error during API call:", err); // Log the error
+            res.status(500).json({ error: "Groq API error", details: err.message });
+        }
 });
   
 app.get("/", (_, res) => {
