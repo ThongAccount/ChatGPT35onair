@@ -4,7 +4,12 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-app.use(cors());
+// Add right after const app = express();
+app.use(cors({
+    origin: '*',
+    methods: ['POST'],
+    allowedHeaders: ['Content-Type']
+  }));
 app.use(express.json());
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
